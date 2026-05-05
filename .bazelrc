@@ -1,0 +1,13 @@
+common --allow_unresolved_symlinks
+
+common --remote_executor=grpcs://remote.buildbuddy.io
+
+common --host_platform=//platforms:local_fallback
+common --extra_execution_platforms=//platforms:rbe_linux_platform
+common --platforms=//platforms:rbe_linux_platform
+
+common --noremote_upload_local_results
+common --remote_timeout=3600
+common --grpc_keepalive_time=30s
+common --grpc_keepalive_timeout=10s
+common --remote_retries=1

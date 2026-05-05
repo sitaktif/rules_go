@@ -1,0 +1,66 @@
+module(name = "exec_platform_test", version = "0.0.0")
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.18")
+bazel_dep(name = "rules_go", version = "0.60.0")
+bazel_dep(name = "protobuf", version = "34.0")
+
+bazel_dep(name = "toolchains_llvm", version = "1.7.0")
+bazel_dep(name = "toolchains_buildbuddy", version = "0.0.4")
+
+# Use the extension to create toolchain and platform targets
+buildbuddy = use_extension("@toolchains_buildbuddy//:extensions.bzl", "buildbuddy")
+
+# Configure and register llvm toolchains.
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+
+llvm.toolchain(
+   llvm_version = "21.1.6",
+
+)
+use_repo(llvm, "llvm_toolchain")
+
+llvm.toolchain(
+   name = "llvm_toolchain_linux_exec",
+   exec_arch = "x86_64",
+   exec_os = "linux",
+   llvm_version = "21.1.6",
+   # Explicitly use libstdc++ from the sysroot; otherwise builtin-libc++ is
+   # used, which requires libc++ headers bundled in the LLVM download (often
+   # absent in pre-built Linux distributions).
+   stdlib = {"linux-x86_64": "stdc++"},
+)
+
+
+# Fetch the Chromium Debian Bullseye sysroot (matches the debian:bullseye RBE container).
+# Uses http_archive + glob(exclude) instead of the toolchains_llvm sysroot() rule so that
+# dangling symlinks in the archive (e.g. qtchooser/default.conf) are silently excluded from
+# the filegroup rather than causing Bazel to fail when building the RBE input Merkle tree.
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "org_chromium_sysroot_linux_x64",
+    sha256 = "5df5be9357b425cdd70d92d4697d07e7d55d7a923f037c22dc80a78e85842d2c",
+    urls = ["https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/4f611ec025be98214164d4bf9fbe8843f58533f7/debian_bullseye_amd64_sysroot.tar.xz"],
+    build_file_content = """\
+filegroup(
+    name = "sysroot",
+    srcs = glob(["**"], exclude = ["**/qt-default/**"]),
+    visibility = ["//visibility:public"],
+)
+""",
+)
+
+llvm.sysroot(
+    name = "llvm_toolchain_linux_exec",
+    label = "@org_chromium_sysroot_linux_x64//:sysroot",
+    targets = ["linux-x86_64"],
+)
+use_repo(llvm, "llvm_toolchain_linux_exec")
+
+register_toolchains("@llvm_toolchain//:all", "@llvm_toolchain_linux_exec//:all")
+
+go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
+go_sdk.download(version = "1.25.7")
+go_sdk.nogo(nogo = "//:nogo")

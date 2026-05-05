@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_binary", "nogo")
+
+nogo(
+    name = "nogo",
+    vet = True,
+    visibility = ["//visibility:public"],
+)
+
+go_binary(
+    name = "hello",
+    srcs = ["main.go"],
+    importpath = "exec_platform_test",
+)

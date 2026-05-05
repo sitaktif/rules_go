@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_binary")
+
+# An issue similar to the `nogo` one (wrong binary arch, but for the
+# `go-protoc-bin` tool) arises with a target that depends on a proto go
+# library.
+#
+# Disable nogo in MODULE.bazel and BUILD.bazel first to remove noise.
+go_binary(
+    name = "proto_hello",
+    srcs = ["main.go"],
+    importpath = "exec_platform_test/proto_hello",
+    deps = ["//proto:hello_go_proto"],
+)

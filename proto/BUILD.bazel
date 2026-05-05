@@ -1,0 +1,14 @@
+load("@rules_go//proto:def.bzl", "go_proto_library")
+load("@protobuf//bazel:proto_library.bzl", "proto_library")
+
+proto_library(
+    name = "hello_proto",
+    srcs = ["hello.proto"],
+)
+
+go_proto_library(
+    name = "hello_go_proto",
+    importpath = "exec_platform_test/proto",
+    proto = ":hello_proto",
+    visibility = ["//visibility:public"],
+)

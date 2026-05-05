@@ -1,0 +1,18 @@
+# Consider adding anything you put here to .tar-exclude-from-file.conf so it is not packaged up by
+# the release pipeline.
+
+/bazel-*
+
+*.iml
+*.ipr
+*.iws
+*.pyc
+.idea/
+.ijwb
+
+*~
+
+common/.DS_Store
+.DS_Store
+
+/.venv

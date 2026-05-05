@@ -1,0 +1,16 @@
+platform(
+    name = "local_fallback",
+    exec_properties = {"no-remote-exec": "true"},
+    parents = ["@platforms//host"],
+)
+
+platform(
+    name = "rbe_linux_platform",
+    exec_properties = {
+        # gcc:12 is Ubuntu 22.04-based with build-essential and libxml2
+        # pre-installed, which ld.lld (from LLVM) requires at runtime.
+        "container-image": "docker://gcc:12",
+        "OSFamily": "Linux",
+    },
+    parents = ["@toolchains_buildbuddy//platforms:linux_x86_64"],
+)
